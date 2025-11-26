@@ -1,9 +1,9 @@
 import express from "express";
-import Stripe from "stripe";
+// import Stripe from "stripe";
 import dotenv from "dotenv";
 dotenv.config();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET);
+// const stripe = new Stripe(process.env.STRIPE_SECRET);
 const router = express.Router();
 
 // CREATE PAYMENT INTENT
