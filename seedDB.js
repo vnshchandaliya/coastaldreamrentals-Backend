@@ -1,12 +1,10 @@
+import dotenv from "dotenv";
 import mongoose from "mongoose";
 import Property from "./models/Property.js";
-
+dotenv.config();
 const seedDB = async () => {
   try {
-    await mongoose
-  .connect(
-    "mongodb+srv://vanshweb73_db_user:property-404@test.rzgoxoo.mongodb.net/rentalpro"
-  )
+    await mongoose.connect(process.env.MONGO_URL)
   .then(() => console.log("✅ MongoDB Connected to Atlas"))
   .catch((err) => console.error("❌ MongoDB Connection Error:", err));
 

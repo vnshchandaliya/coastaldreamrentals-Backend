@@ -1,4 +1,6 @@
-import 'dotenv/config';
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
@@ -107,7 +109,7 @@ app.use("/api/payment", paymentRoutes);
 
 // -------------------------------------------------------
 mongoose
-  .connect("mongodb+srv://vanshweb73_db_user:property-404@test.rzgoxoo.mongodb.net/rentalpro")
+  .connect(process.env.MONGO_URL)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch((err) => console.error("❌ Database Error:", err));
 
