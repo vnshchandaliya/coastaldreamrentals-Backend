@@ -1,10 +1,10 @@
+import dotenv from "dotenv";
+dotenv.config();
 import mongoose from "mongoose";
 import Property from "../models/Property.js";
 import Booking from "../models/Booking.js";
 import Coupon from "../models/Coupon.js";
 import Stripe from "stripe";
-import dotenv from "dotenv";
-dotenv.config();
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 

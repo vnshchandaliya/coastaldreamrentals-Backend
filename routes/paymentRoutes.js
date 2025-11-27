@@ -1,7 +1,7 @@
-import express from "express";
-// import Stripe from "stripe";
 import dotenv from "dotenv";
 dotenv.config();
+import express from "express";
+// import Stripe from "stripe";
 
 // const stripe = new Stripe(process.env.STRIPE_SECRET);
 const router = express.Router();
