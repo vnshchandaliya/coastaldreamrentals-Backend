@@ -1,8 +1,3 @@
-console.log("------ ENV CHECK ------");
-console.log("MONGO_URI =", process.env.MONGO_URI);
-console.log("ALL ENV KEYS =", Object.keys(process.env));
-console.log("------------------------");
-
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
@@ -122,7 +117,6 @@ mongoose
   .catch((err) => console.error("❌ Database Error:", err));
 
 app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
-console.log("Loaded MONGO_URI =", process.env.MONGO_URI);
 
 
 console.log("bookingRoutes loaded");
