@@ -21,6 +21,8 @@ const propertySchema = new mongoose.Schema({
   image: String,
   latitude: Number,
   longitude: Number,
+  externalId: Number,
+
 
   basePricePerNight: { type: Number, default: 0 },   // default 0
   cleaningFee: { type: Number, default: 0 },         // default 0

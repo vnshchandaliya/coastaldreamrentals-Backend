@@ -2,11 +2,9 @@ import dotenv from "dotenv";
 dotenv.config();
 import mongoose from "mongoose";
 import Property from "./models/Property.js";
-<<<<<<< HEAD
+
 const MONGO = process.env.MONGO_URI;
-=======
-const MONGO = process.env.MONGO_URI || process.env.MONGODB_URI;
->>>>>>> c950cd2 (ok)
+
 const seedDB = async () => {
   try {
     await mongoose.connect(MONGO)
@@ -22,6 +20,7 @@ const seedDB = async () => {
     const seedProperties = [
       {
         _id: new  mongoose.Types.ObjectId("691c872c76d17832c4ba628b"),
+        externalId: 7418,
         title: "Sea Dunes Beach Front",
         guests: 2,
         floors: 1,
@@ -39,6 +38,7 @@ const seedDB = async () => {
       },
       {
         _id: new mongoose.Types.ObjectId("68f7edf6fa0cfc5e57cebea4"),
+        externalId: 7463,
         title: "Jade East 210",
         guests: 6,
         floors: 1,
@@ -56,6 +56,7 @@ const seedDB = async () => {
       },
       {
         _id: new mongoose.Types.ObjectId("68f7edf6fa0cfc5e57cebeb0"),
+         externalId: 7445,
         title: "Grand Caribbean West 213",
         guests: 6,
         floors: 1,
@@ -73,6 +74,7 @@ const seedDB = async () => {
       },
       {
         _id: new mongoose.Types.ObjectId("68f7edf6fa0cfc5e57cebeb1"),
+         externalId: 7303,
         title: "Crystal Sands",
         guests: 6,
         floors: 1,
@@ -90,6 +92,7 @@ const seedDB = async () => {
       },
       {
         _id: new mongoose.Types.ObjectId("68f7edf6fa0cfc5e57cebeb2"),
+         externalId: 7230,
         title: "Beach Sanctuary, Destin",
         guests: 10,
         bedroom: 4,
@@ -106,6 +109,7 @@ const seedDB = async () => {
       },
       {
         _id: new mongoose.Types.ObjectId("68f7edf6fa0cfc5e57cebeb3"),
+         externalId: 7468,
         title: "Shoreline Towers 2051, Destin",
         guests: 5,
         floors: 1,
@@ -123,6 +127,7 @@ const seedDB = async () => {
       },
       {
         _id: new mongoose.Types.ObjectId("68f7edf6fa0cfc5e57cebeb4"),
+         externalId: 7563,
         title: "Summer Breeze",
         guests: 5,
         bedroom: 1,
@@ -139,6 +144,7 @@ const seedDB = async () => {
       },
       {
         _id: new mongoose.Types.ObjectId("68f7edf6fa0cfc5e57cebeb5"),
+         externalId: 7526,
         title: "Summer Spell",
         guests: 5,
         bedroom: 1,

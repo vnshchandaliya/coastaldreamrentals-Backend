@@ -1,32 +1,94 @@
 import express from "express";
 const router = express.Router();
 
-// Helper to generate random status
-const statuses = ["A", "CI", "CO", "R", "T"];
-const randomStatus = () => statuses[Math.floor(Math.random() * statuses.length)];
+// Status: A = Available, R = Reserved, H = Turnover
+const getRandomBlock = () => Math.floor(Math.random() * 6) + 2;
 
-// Function to generate days data for 3 months (for search)
-const generateCalendar = (year) => {
-  const months = [10, 11, 12]; // Oct, Nov, Dec
-  const allMonths = {};
+const formatDate = (y, m, d) =>
+  new Date(y, m - 1, d).toISOString().split("T")[0];
 
-  months.forEach((month) => {
-    const daysInMonth = new Date(year, month, 0).getDate();
-    const days = [];
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(year, month - 1, day);
+// Generate one month calendar
+const generateCalendar = (year, month) => {
+  const daysInMonth = new Date(year, month, 0).getDate();
+
+  let days = [];
+  let used = new Set();
+  let current = 1;
+
+  while (current <= daysInMonth) {
+    // Reserved block size 1–3 days only
+    const blockSize = Math.floor(Math.random() * 3) + 1;
+
+    const start = current;
+    const end = Math.min(start + blockSize - 1, daysInMonth);
+
+    // TURNOVER BEFORE
+    if (start > 1 && !used.has(start - 1)) {
       days.push({
-        date: date.toISOString().split("T")[0], // YYYY-MM-DD
-        status: randomStatus(),
+        date: formatDate(year, month, start - 1),
+        status: "H",
+      });
+      used.add(start - 1);
+    }
+
+    // RESERVED BLOCK
+    for (let d = start; d <= end; d++) {
+      days.push({
+        date: formatDate(year, month, d),
+        status: "R",
+      });
+      used.add(d);
+    }
+
+    // TURNOVER AFTER
+    if (end < daysInMonth && !used.has(end + 1)) {
+      days.push({
+        date: formatDate(year, month, end + 1),
+        status: "H",
+      });
+      used.add(end + 1);
+    }
+
+    // Move pointer and leave natural gap for AVAILABLE
+    current = end + Math.floor(Math.random() * 4) + 2;
+  }
+
+  // FILL AVAILABLE DAYS (NO COLOR)
+  for (let i = 1; i <= daysInMonth; i++) {
+    if (!used.has(i)) {
+      days.push({
+        date: formatDate(year, month, i),
+        status: "A",
       });
     }
-    allMonths[month] = days;
-  });
+  }
 
-  return allMonths;
+  // SORT OUTPUT
+  days.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  return days;
 };
 
-// Random property list (8)
+
+// Generate multiple months
+const generateCalendarRange = (startY, startM, endY, endM) => {
+  let calendar = {};
+  let y = startY;
+  let m = startM;
+
+  while (y < endY || (y === endY && m <= endM)) {
+    calendar[`${y}-${m}`] = generateCalendar(y, m);
+
+    m++;
+    if (m > 12) {
+      m = 1;
+      y++;
+    }
+  }
+
+  return calendar;
+};
+
 const properties = [
   { id: 7230, name: "Beach Sanctuary" },
   { id: 7303, name: "Crystal Sands 1BR 1.5BA Sleeps 6 104A" },
@@ -35,61 +97,57 @@ const properties = [
   { id: 7463, name: "Jade East 210" },
   { id: 7468, name: "Shoreline Towers 2051" },
   { id: 7526, name: "SummerSpell 106" },
-  { id: 7563, name: "Breakers East 803" },
+  { id: 7563, name: "Summer Breeze" },
 ];
 
-// Store generated data once (simulate DB)
-const year = 2025;
+// Attach calendar to properties
 const allProperties = properties.map((p) => ({
   ...p,
-  calendar: generateCalendar(year),
+  calendar: generateCalendarRange(2025, 12, 2026, 3),
 }));
 
-// ✅ Route: Get single month data
+// ================ MONTH API ================
 router.get("/month", (req, res) => {
-  const { month = 10, year = 2025 } = req.query;
+  const { year = 2025, month = 12 } = req.query;
+
+  const key = `${year}-${month}`;
 
   const data = allProperties.map((prop) => ({
     id: prop.id,
     name: prop.name,
-    days: prop.calendar[month],
+    days: prop.calendar[key] || [],
   }));
 
   res.json({ month, year, data });
 });
 
-// ✅ Route: Search by date range (fixed logic)
+// ================ SEARCH API ================
 router.get("/search", (req, res) => {
   const { checkIn, checkOut } = req.query;
 
   if (!checkIn || !checkOut) {
-    return res.status(400).json({ message: "Missing checkIn or checkOut date" });
+    return res.status(400).json({ message: "Missing date values" });
   }
 
   const checkInDate = new Date(checkIn);
   const checkOutDate = new Date(checkOut);
 
-  // Filter available properties
-  const availableProperties = allProperties.filter((prop) => {
+  const available = allProperties.filter((prop) => {
     const allDays = Object.values(prop.calendar).flat();
 
-    // Days between checkIn and checkOut
     const daysInRange = allDays.filter((d) => {
-      const current = new Date(d.date);
-      return current >= checkInDate && current <= checkOutDate;
+      const c = new Date(d.date);
+      return c >= checkInDate && c <= checkOutDate;
     });
 
-    // If any day is reserved or turnover, property unavailable
-    const isUnavailable = daysInRange.some((d) => d.status === "R" || d.status === "T");
-
-    return !isUnavailable; // ✅ Only return if fully available
+    return !daysInRange.some((d) => d.status === "R");
   });
 
   res.json({
     checkIn,
     checkOut,
-    availableCount: availableProperties.length,
-    availableProperties,
+    availableCount: available.length,
+    availableProperties: available,
   });
 });
 

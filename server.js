@@ -6,11 +6,10 @@ import axios from "axios";
 import Property from "./models/Property.js";
 
 dotenv.config();
-<<<<<<< HEAD
 
-=======
+// Mongo connection string (merged)
 const MONGO = process.env.MONGO_URI || process.env.MONGODB_URI;
->>>>>>> c950cd2 (ok)
+
 // Custom Routes
 import calendarRoutes from "./routes/calendarRoutes.js";
 import propertyRoutes from "./routes/propertyRoutes.js";
@@ -27,7 +26,6 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("🏡 RentalPro API Working");
 });
-
 
 
 // -------------------------------------------------------
@@ -113,20 +111,18 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/payment", paymentRoutes);
 
 // -------------------------------------------------------
+// CONNECT MONGO
+// -------------------------------------------------------
 mongoose
-<<<<<<< HEAD
-  .connect(process.env.MONGO_URI, {
+  .connect(MONGO, {
     serverSelectionTimeoutMS: 5000,
   })
-=======
- mongoose.connect(MONGO)
->>>>>>> c950cd2 (ok)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch((err) => console.error("❌ Database Error:", err));
 
-app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
+app.listen(PORT, () =>
+  console.log(`🚀 Server running at http://localhost:${PORT}`)
+);
+
 console.log("Loaded MONGO_URI =", process.env.MONGO_URI);
-
-
-
 console.log("bookingRoutes loaded");
