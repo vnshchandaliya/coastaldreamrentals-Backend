@@ -6,7 +6,11 @@ import axios from "axios";
 import Property from "./models/Property.js";
 
 dotenv.config();
+<<<<<<< HEAD
 
+=======
+const MONGO = process.env.MONGO_URI || process.env.MONGODB_URI;
+>>>>>>> c950cd2 (ok)
 // Custom Routes
 import calendarRoutes from "./routes/calendarRoutes.js";
 import propertyRoutes from "./routes/propertyRoutes.js";
@@ -14,7 +18,7 @@ import bookingRoutes from "./routes/bookingRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 
 const app = express();
-const PORT =  process.env.PORT || 5000;
+const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
@@ -110,13 +114,19 @@ app.use("/api/payment", paymentRoutes);
 
 // -------------------------------------------------------
 mongoose
+<<<<<<< HEAD
   .connect(process.env.MONGO_URI, {
     serverSelectionTimeoutMS: 5000,
   })
+=======
+ mongoose.connect(MONGO)
+>>>>>>> c950cd2 (ok)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch((err) => console.error("❌ Database Error:", err));
 
 app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
+console.log("Loaded MONGO_URI =", process.env.MONGO_URI);
+
 
 
 console.log("bookingRoutes loaded");

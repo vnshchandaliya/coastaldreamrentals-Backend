@@ -2,7 +2,11 @@ import dotenv from "dotenv";
 dotenv.config();
 import mongoose from "mongoose";
 import Property from "./models/Property.js";
+<<<<<<< HEAD
 const MONGO = process.env.MONGO_URI;
+=======
+const MONGO = process.env.MONGO_URI || process.env.MONGODB_URI;
+>>>>>>> c950cd2 (ok)
 const seedDB = async () => {
   try {
     await mongoose.connect(MONGO)
