@@ -17,7 +17,6 @@ export const previewBooking = async (req, res) => {
   try {
     const { propertyId, checkIn, checkOut } = req.body;
 
-    // ✅ PROPERTY FETCH (variable name FIXED)
     const property = await Listing.findById(propertyId);
     if (!property) {
       return res.status(404).json({ error: "Property not found" });
@@ -26,32 +25,64 @@ export const previewBooking = async (req, res) => {
     const start = new Date(checkIn);
     const end = new Date(checkOut);
 
-    const nights = Math.ceil(
-      (end - start) / (1000 * 60 * 60 * 24)
-    );
-
+    const nights = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
     if (nights <= 0) {
       return res.status(400).json({ error: "Invalid date range" });
     }
 
-    // ✅ RATE MATCH (SEASON LOGIC)
-    const matchedRate = property.rates.find(rate => {
-      const rateStart = new Date(rate.from);
-      const rateEnd = new Date(rate.to);
+    let subtotal = 0;
+    let nightlyBreakdown = [];
 
-      return start >= rateStart && end <= rateEnd;
-    });
+    // 🔥 LOOP EVERY NIGHT
+    for (let i = 0; i < nights; i++) {
 
-    if (!matchedRate) {
-      return res.status(400).json({
-        error: "No rate available for selected dates"
+      const currentDate = new Date(start);
+      currentDate.setDate(start.getDate() + i);
+
+      // 1️⃣ calendar override price
+      const calendarDay = property.calendar?.find(d =>
+        new Date(d.date).toDateString() === currentDate.toDateString()
+      );
+
+      if (calendarDay?.price) {
+        subtotal += calendarDay.price;
+        nightlyBreakdown.push({
+          date: currentDate,
+          price: calendarDay.price,
+          source: "calendar"
+        });
+        continue;
+      }
+
+      // 2️⃣ seasonal rate tab
+      const rate = property.rates.find(r => {
+        const rateStart = new Date(r.from);
+        const rateEnd = new Date(r.to);
+
+        return currentDate >= rateStart && currentDate <= rateEnd;
+      });
+
+      if (rate?.nightly) {
+        subtotal += rate.nightly;
+        nightlyBreakdown.push({
+          date: currentDate,
+          price: rate.nightly,
+          source: "season"
+        });
+        continue;
+      }
+
+      // 3️⃣ fallback
+      const fallback = property.basePrice || 150;
+      subtotal += fallback;
+      nightlyBreakdown.push({
+        date: currentDate,
+        price: fallback,
+        source: "fallback"
       });
     }
 
-    const nightlyPrice = matchedRate.nightly;
-    const subtotal = nightlyPrice * nights;
-
-    // ✅ STATIC FEES (abhi simple rakha)
+    // fees
     const cleaningFee = 150;
     const serviceFee = Math.round(subtotal * 0.05);
     const taxes = Math.round(subtotal * 0.12);
@@ -64,16 +95,15 @@ export const previewBooking = async (req, res) => {
       taxes +
       warranty;
 
-    // ✅ RESPONSE
     res.json({
       nights,
-      nightlyPrice,
       subtotal,
       cleaningFee,
       serviceFee,
       taxes,
       warranty,
       total,
+      nightlyBreakdown,
     });
 
   } catch (error) {
@@ -81,6 +111,7 @@ export const previewBooking = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
 // ----------------------------------------------------------
 // CREATE BOOKING (Stripe Verification)
 // ----------------------------------------------------------
@@ -96,7 +127,6 @@ export const createBooking = async (req, res) => {
       paymentIntentId
     } = req.body;
 
-    // 🔒 must be paid
     if (!paymentIntentId) {
       return res.status(400).json({ error: "Payment not completed" });
     }
@@ -106,6 +136,7 @@ export const createBooking = async (req, res) => {
       return res.status(404).json({ error: "Property not found" });
     }
 
+    // create booking
     const booking = new Booking({
       property: propertyId,
       checkIn,
@@ -113,36 +144,41 @@ export const createBooking = async (req, res) => {
       guests,
       nights: pricing.nights,
       user,
-
       pricing,
-
       payment: {
         provider: "stripe",
         paid: true,
         paymentIntentId,
       },
-
       status: "confirmed"
     });
 
     await booking.save();
 
-    // 🔒 BLOCK CALENDAR AFTER PAYMENT
+    // 🔥 BLOCK ONLY STAY NIGHTS
     const start = new Date(checkIn);
     const end = new Date(checkOut);
 
     for (let d = new Date(start); d < end; d.setDate(d.getDate() + 1)) {
-      listing.calendar.push({
-        date: new Date(d),
-        status: "R",
-        source: "internal"
-      });
+
+      // avoid duplicate block
+      const exists = listing.calendar.find(c =>
+        new Date(c.date).toDateString() === d.toDateString()
+      );
+
+      if (!exists) {
+        listing.calendar.push({
+          date: new Date(d),
+          status: "R",
+          source: "internal"
+        });
+      }
     }
 
     await listing.save();
 
     res.json({
-      message: "Booking confirmed",
+      message: "Booking confirmed & calendar updated",
       bookingId: booking._id
     });
 
@@ -151,6 +187,7 @@ export const createBooking = async (req, res) => {
     res.status(500).json({ error: "Booking failed" });
   }
 };
+
 
 
 
@@ -216,7 +253,7 @@ if (status === "confirmed") {
 export const getAllBookings = async (req, res) => {
   try {
     const bookings = await Booking.find()
-      .populate("property", "title")
+      .populate("property")   // 👈 remove "title"
       .sort({ createdAt: -1 });
 
     res.json(bookings);
@@ -224,6 +261,7 @@ export const getAllBookings = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch bookings" });
   }
 };
+
 export const createPaymentIntent = async (req, res) => {
   try {
     const { amount } = req.body;
