@@ -1,6 +1,6 @@
+import dotenv from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
-import dotenv from "dotenv";
 import cors from "cors";
 import axios from "axios";
 import Property from "./models/Property.js";
