@@ -35,7 +35,7 @@ export const createInquiry = async (req, res) => {
 // ADMIN → GET ALL
 export const getAllInquiries = async (req, res) => {
   const inquiries = await Inquiry.find()
-    .populate("property", "title")
+    .populate("property")
     .sort({ createdAt: -1 });
 
   res.json(inquiries);
