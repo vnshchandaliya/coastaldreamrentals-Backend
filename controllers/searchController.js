@@ -2,37 +2,44 @@ import Listing from "../models/Listing.js";
 
 export const searchController = async (req, res) => {
   try {
-    const { checkIn, checkOut } = req.query;
-
-    if (!checkIn || !checkOut) {
-      return res.status(400).json({ error: "Dates required" });
-    }
+    const { checkIn, checkOut, guests } = req.query;
 
     const start = new Date(checkIn);
     const end = new Date(checkOut);
 
     const listings = await Listing.find({ status: "published" });
 
-    const available = listings.filter((listing) => {
-      // ✅ ONLY RATE CHECK
-      const rateMatch = listing.rates?.some((rate) => {
-        return (
-          start >= new Date(rate.from) &&
-          end <= new Date(rate.to)
-        );
+    const availableListings = listings.filter((listing) => {
+
+      // ===============================
+      // 1️⃣ CALENDAR CONFLICT ONLY
+      // ===============================
+      const hasConflict = listing.calendar?.some(day => {
+        const booked = new Date(day.date);
+        return booked >= start && booked < end && day.status === "R";
       });
 
-      return rateMatch;
+      if (hasConflict) return false;
+
+      // ===============================
+      // 2️⃣ GUEST CHECK
+      // ===============================
+      if (guests && listing.property?.maxSleeps < Number(guests)) {
+        return false;
+      }
+
+      return true;
     });
 
     res.json({
-      checkIn,
-      checkOut,
-      total: available.length,
-      results: available,
+      results: availableListings,
+      total: availableListings.length,
     });
+
   } catch (err) {
     console.error("Search error:", err);
     res.status(500).json({ error: "Search failed" });
   }
 };
+
+

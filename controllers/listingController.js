@@ -51,8 +51,8 @@ export const updateProperty = async (req, res) => {
   try {
     const { id } = req.params;
 
-    console.log("LISTING ID:", id);
-    console.log("PROPERTY DATA:", req.body);
+    // console.log("LISTING ID:", id);
+    // console.log("PROPERTY DATA:", req.body);
 
     const listing = await Listing.findByIdAndUpdate(
       id,
@@ -436,7 +436,7 @@ export const getPublishedListings = async (req, res) => {
   try {
     const listings = await Listing.find({ status: "published" });
 
-    console.log("PUBLISHED LISTINGS:", listings.length);
+    // console.log("PUBLISHED LISTINGS:", listings.length);
 
     res.status(200).json(listings);
   } catch (error) {

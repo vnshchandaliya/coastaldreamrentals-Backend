@@ -128,20 +128,26 @@ calendar: [
   {
     date: {
       type: Date,
-      required: true,
+      required: true
     },
+
     status: {
       type: String,
-      enum: ["A", "R", "H"],
-      default: "A",
+      enum: ["A", "R", "H"],   // Available / Reserved / Turnover
+      default: "A"
     },
+
     source: {
       type: String,
-      enum: ["internal", "admin", "ical"],
-      default: "internal",
+      enum: ["internal", "booking", "admin", "ical"],
+      default: "internal"
     },
-  },
+
+    price: Number
+  }
 ],
+
+
 
   },
   
